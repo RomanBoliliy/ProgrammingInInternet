@@ -82,3 +82,31 @@ return newArr;
 }
 
 console.log(older20(persons));
+
+//7
+ 
+function destruct(pe)
+{
+var n = pe.Name;
+var c = pe.City;
+}
+var firstPerson = persons[0];
+
+//8
+
+function getUserData(nm){
+    let result = persons.find(person => person.Name === nm);
+    if (result === undefined) {
+        return new Error("Unable to find user");
+    }
+    return result;
+}
+
+
+function showUserInfo(nam){
+console.log("Loading...");
+console.log(getUserData(nam));
+console.log("Loading finished");
+}
+
+showUserInfo("Ema");
