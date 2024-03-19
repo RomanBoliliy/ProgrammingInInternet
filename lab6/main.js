@@ -17,7 +17,7 @@ function init() {
         <button onclick="showContent('About')">About</button>
     `;
 
-    mainContent.id = 'content';
+    mainContent.id = 'mainContent';
 
     footer.innerHTML = `<div class="current-users">    <h3>Current Users</h3>    <p id="active-users-count">Loading...</p>
       <h3>New Users</h3><ul id="new-users-list"></ul> </div>
@@ -45,6 +45,18 @@ function init() {
     content.style.float = 'left';
     content.style.backgroundColor = 'lightgreen';
 
+/*
+var userTable = document.createElement('div');
+userTable.id = 'userTable';
+userTable.innerHTML = '<div class="loader"></div>';
+userTable.style.width = '33%';
+userTable.style.height= '100%';
+userTable.style.float = 'left';
+userTable.style.backgroundColor = 'lightgreen';
+*/
+
+
+
     var rightPanel = document.createElement('div');
     rightPanel.id = 'rightPanel';
     rightPanel.innerHTML = '<div class="loader"></div>';
@@ -69,6 +81,7 @@ function init() {
         for (var i = 0; i < loader.length; i++) {
             loader[i].style.display = 'none';
         }
+
         var noUsers = document.createElement('p');
         noUsers.textContent = 'No users';
         content.appendChild(noUsers);
@@ -195,15 +208,17 @@ function updateFooter() {
 }
 
 function sumUsers() {
-    fetchUsers(users => {
-        let usersCount = 0;
-       users.forEach(user => {
-        usersCount+=user.score;
-       });
-
-        
-        console.log(`Total users: ${usersCount}`);
-    });
+    setTimeout(function(){
+        fetchUsers(users => {
+            let usersCount = 0;
+           users.forEach(user => {
+            usersCount+=user.score;
+           });
+    
+           rightPanel.textContent = "Score of all users: " + usersCount;
+        }    
+        )
+    }, 1000)
 }
 
 
