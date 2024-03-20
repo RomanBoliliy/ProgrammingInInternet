@@ -45,18 +45,6 @@ function init() {
     content.style.float = 'left';
     content.style.backgroundColor = 'lightgreen';
 
-/*
-var userTable = document.createElement('div');
-userTable.id = 'userTable';
-userTable.innerHTML = '<div class="loader"></div>';
-userTable.style.width = '33%';
-userTable.style.height= '100%';
-userTable.style.float = 'left';
-userTable.style.backgroundColor = 'lightgreen';
-*/
-
-
-
     var rightPanel = document.createElement('div');
     rightPanel.id = 'rightPanel';
     rightPanel.innerHTML = '<div class="loader"></div>';
@@ -90,23 +78,31 @@ userTable.style.backgroundColor = 'lightgreen';
         getUsersButton.textContent = 'Get Users';
         getUsersButton.onclick = getUsers;
         content.appendChild(getUsersButton);
+
     }, 1000);
+
+    var buttons = header.querySelectorAll('button');
+    buttons.forEach(function(button) {
+        button.addEventListener('click', function() {
+            showContent(button.textContent);
+        });
+    });
+
+
 
 }
 
 function showContent(section) {
     var content = document.getElementById('content');
     content.innerHTML = '<h2>' + section + '</h2>';
-
-    //content.textContent = section;
 }
 
 function getUsers() {
     updateFooter();
     sumUsers();
+    SearchUs();
     fetchUsers(function(users) {
         createTable(users);
-
     })
 };
 
@@ -128,6 +124,7 @@ function createTable(users) {
         th.textContent = headerText;
         headerRow.appendChild(th);
     });
+
     table.appendChild(headerRow);
 
     // Додамо дані користувачів у таблицю
@@ -144,39 +141,24 @@ function createTable(users) {
     // Додамо таблицю до контенту
     content.appendChild(table);
 
-        // Обробник для сортування таблиці за прізвищем
-        var lastnameHeader = document.getElementById('usersTable').rows[0].cells[1];
-        lastnameHeader.addEventListener('click', function() {
-            sortTable(1);
-        });
+       // Отримуємо таблицю
+       var table = document.querySelector('#content table');
+       if (!table) return; // Перевірка наявності таблиці
+
+       // Отримуємо перший рядок таблиці (заголовок)
+       var firstRow = table.querySelector('tr');
+       if (!firstRow) return; // Перевірка наявності рядка
+
+       // Отримуємо всі комірки в першому рядку
+       var cells = firstRow.querySelectorAll('th, td');
+       if (!cells.length) return; // Перевірка наявності комірок
+
+       // Додаємо обробник події click до першої комірки (першого заголовка)
+       cells[1].addEventListener('click', function() {
+           sortTable(1); // 1 - індекс колонки з прізвищем у таблиці
+       });
+
 }
-
-
-// Функція для сортування таблиці за колонкою
-function sortTable(columnIndex) {
-    var table, rows, switching, i, x, y, shouldSwitch;
-    table = document.getElementById('usersTable');
-    switching = true;
-    while (switching) {
-        switching = false;
-        rows = table.rows;
-        for (i = 1; i < (rows.length - 1); i++) {
-            shouldSwitch = false;
-            x = rows[i].getElementsByTagName('td')[columnIndex];
-            y = rows[i + 1].getElementsByTagName('td')[columnIndex];
-            if (x.innerHTML.toLowerCase() > y.innerHTML.toLowerCase()) {
-                shouldSwitch = true;
-                break;
-            }
-        }
-        if (shouldSwitch) {
-            rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
-            switching = true;
-        }
-    }
-}
-
-
 
 // Функція для отримання кількості активних користувачів
 function fetchActiveUsers() {
@@ -211,15 +193,118 @@ function sumUsers() {
     setTimeout(function(){
         fetchUsers(users => {
             let usersCount = 0;
-           users.forEach(user => {
+            users.forEach(user => {
             usersCount+=user.score;
            });
-    
            rightPanel.textContent = "Score of all users: " + usersCount;
+
+        // Чекбокс "Edit table"
+        var editCheckbox = document.createElement('input');
+        editCheckbox.setAttribute('type', 'checkbox');
+        editCheckbox.setAttribute('id', 'editCheckbox');
+        editCheckbox.onchange = toggleDeleteButton;
+        rightPanel.appendChild(editCheckbox);
+        var label = document.createElement('label');
+        label.textContent = 'Edit table';
+        label.setAttribute('for', 'editCheckbox');
+        rightPanel.appendChild(label);
+
         }    
         )
     }, 1000)
 }
 
+function SearchUs(){
+    setTimeout(function(){
+        var left = document.getElementById('leftPanel');
+        // Очистимо вміст контенту
+        left.innerHTML = '';
+
+        // Поле введення та кнопка пошуку
+        var searchInput = document.createElement('input');
+        searchInput.setAttribute('type', 'text');
+        searchInput.setAttribute('id', 'searchInput');
+        leftPanel.appendChild(searchInput);
+
+        var searchButton = document.createElement('button');
+        searchButton.textContent = 'Search';
+        searchButton.onclick = searchTable;
+        leftPanel.appendChild(searchButton);
+    }, 1000)
+}
+
+
+function searchTable() {
+    var searchInput = document.getElementById('searchInput');
+    var searchText = searchInput.value.toLowerCase();
+
+    // Отримуємо таблицю
+    var table = document.querySelector('#content table');
+    if (!table) return; // Перевірка наявності таблиці
+
+    // Отримуємо всі рядки таблиці, крім заголовка
+    var tableRows = table.querySelectorAll('tr:not(:first-child)');
+    tableRows.forEach(function(row) {
+        // Отримуємо текст рядка
+        var rowText = row.textContent.toLowerCase();
+        // Перевіряємо, чи містить рядок таблиці введений текст
+        if (rowText.includes(searchText)) {
+            // Якщо містить, виділяємо його
+            row.style.backgroundColor = 'yellow';
+        } else {
+            // Інакше, знімаємо виділення
+            row.style.backgroundColor = '';
+        }
+    });
+}
+
+function toggleDeleteButton() {
+    var table = document.querySelector('#content table');
+    if (!table) return; // Перевірка наявності таблиці
+
+    var editCheckbox = document.getElementById('editCheckbox');
+    var isChecked = editCheckbox.checked;
+
+    var tableRows = table.querySelectorAll('tr');
+    tableRows.forEach(function(row) {
+        if (isChecked) {
+            var deleteButton = document.createElement('button');
+            deleteButton.textContent = 'Delete';
+            deleteButton.onclick = function() {
+                table.deleteRow(row.rowIndex);
+            };
+            var cell = document.createElement('td');
+            cell.appendChild(deleteButton);
+            row.appendChild(cell);
+        } else {
+            row.lastElementChild.remove();
+        }
+    });
+}
+
+function sortTable(columnIndex) {
+    var table, rows, switching, i, x, y, shouldSwitch;
+    table = document.querySelector('#content table');
+    if (!table) return; // Перевірка наявності таблиці
+
+    switching = true;
+    while (switching) {
+        switching = false;
+        rows = table.rows;
+        for (i = 1; i < (rows.length - 1); i++) {
+            shouldSwitch = false;
+            x = rows[i].getElementsByTagName('td')[columnIndex];
+            y = rows[i + 1].getElementsByTagName('td')[columnIndex];
+            if (x.innerHTML.toLowerCase() > y.innerHTML.toLowerCase()) {
+                shouldSwitch = true;
+                break;
+            }
+        }
+        if (shouldSwitch) {
+            rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
+            switching = true;
+        }
+    }
+}
 
 window.onload = init;
