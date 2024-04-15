@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lab 9</title>
+<style>
+    table {
+        border-collapse: collapse;
+        width: 100%;
+    }
+    th, td {
+        border: 1px solid #ddd;
+        padding: 8px;
+        text-align: left;
+    }
+    th {
+        background-color: #f2f2f2;
+    }
+</style>
+</head>
+<body>
+    <h2>Shopping List</h2>
+    <input type="text" id="listName" placeholder="Enter list name">
+    <button onclick="showList()">Show List</button>
+    <hr>
+    <table id="listTable">
+        <tr>
+            <th>Name</th>
+            <th>Quantity</th>
+            <th>Status</th>
+            <th>Action</th>
+        </tr>
+    </table>
+    <button onclick="addItem()">Add Item</button>
+    <button onclick="addList()">Add List</button>
+    <button onclick="deleteList()">Delete List</button>
+    <script>
+        const PORT = 5500;
+        function showList() {
+            const listName = document.getElementById('listName').value;
+            fetch(`http://localhost:${PORT}/shopping-list/${listName}`)
+                .then(response => response.json())
+                .then(data => {
+                    const table = document.getElementById('listTable');
+                    table.innerHTML = `
+                        <tr>
+                            <th>Name</th>
+                            <th>Quantity</th>
+                            <th>Status</th>
+                            <th>Action</th>
+                        </tr>
+                    `;
+                    data.forEach(item => {
+                        const row = `
+                            <tr>
+                                <td>${item.name}</td>
+                                <td>${item.quantity}</td>
+                                <td>${item.status}</td>
+                                <td><button onclick="deleteItem('${listName}', '${item.name}')">Delete</button></td>
+                            </tr>
+                        `;
+                        table.innerHTML += row;
+                    });
+                })
+                .catch(error => console.error('Error:', error));
+        }
+
+        function addItem() {
+            const listName = document.getElementById('listName').value;
+            const name = prompt('Enter item name:');
+            const quantity = parseInt(prompt('Enter item quantity:'));
+            const status = confirm('Is item purchased?');
+            if (name && !isNaN(quantity)) {
+                fetch(`http://localhost:${PORT}/shopping-list/${listName}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ name, quantity, status })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    console.log('Item added:', data);
+                    showList();
+                })
+                .catch(error => console.error('Error:', error));
+            } else {
+                alert('Invalid input!');
+            }
+        }
+
+        function addList() {
+            const listName = prompt('Enter list name:');
+            if (listName) {
+                fetch(`http://localhost:${PORT}/shopping-list/${listName}`, {
+                    method: 'POST'
+                })
+                .then(response => response.json())
+                .then(data => {
+                    console.log('List added:', data);
+                })
+                .catch(error => console.error('Error:', error));
+            } else {
+                alert('Invalid input!');
+            }
+        }
+
+        function deleteItem(listName, itemName) {
+            fetch(`http://localhost:${PORT}/shopping-list/${listName}/${itemName}`, { method: 'DELETE' })
+                .then(response => response.json())
+                .then(data => {
+                    console.log('Item deleted:', data);
+                    showList();
+                })
+                .catch(error => console.error('Error:', error));
+        }
+
+        function deleteList() {
+            const listName = document.getElementById('listName').value;
+            fetch(`http://localhost:${PORT}/shopping-list/${listName}`, { method: 'DELETE' })
+                .then(response => response.json())
+                .then(data => {
+                    console.log('List deleted:', data);
+                    document.getElementById('listTable').innerHTML = '';
+                })
+                .catch(error => console.error('Error:', error));
+        }
+    </script>
+</body>
+</html>

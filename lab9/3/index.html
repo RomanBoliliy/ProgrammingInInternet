@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lab 9</title>
+    <meta http-equiv="refresh" content="2">
+</head>
+    <body>
+        <ul id="crypto-list"></ul>
+
+        <script>
+            const PORT = 5500;
+            const socket = new WebSocket(`ws://localhost:${PORT}`);
+
+            socket.onopen = function() {
+                console.log('connected to server');
+            };
+
+            socket.onmessage = function(event) {
+                const data = JSON.parse(event.data);
+                updateCryptoList(data);
+            };
+
+            function updateCryptoList(data) {
+                const cryptoList = document.getElementById('crypto-list');
+                cryptoList.innerHTML = '';
+
+                for (const crypto of data) {
+                    const listItem = document.createElement('li');
+                    listItem.textContent = `${crypto.name}: $${crypto.rate.toFixed(2)}`;
+                    cryptoList.appendChild(listItem);
+                }
+            }
+        </script>
+    </body>
+</html>

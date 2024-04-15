@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>SSE Chat</title>
+    </head>
+    <body>
+        <input id="input" style="width: 100%; padding: 10px; border: solid black 2px;"/>
+        <script>
+            const PORT = 5500;
+            let nick = prompt("Enter your nickname");
+            let input = document.getElementById("input");
+            input.focus();
+
+            let chat = new EventSource(`http://localhost:${PORT}/chat`);
+            chat.addEventListener("chat", event => {
+                let div = document.createElement("div");
+                div.append(event.data);
+                input.before(div);
+                input.scrollIntoView();
+            });
+
+            input.addEventListener("change", () => {
+                fetch(`http://localhost:${PORT}/chat`, {
+                    method: "POST",
+                    body: nick + ": " + input.value
+                })
+                .catch(e => console.error);
+
+                input.value = "";
+            });
+        </script>
+    </body>
+</html>
